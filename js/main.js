@@ -27,7 +27,6 @@ var $message = jQuery("#message");
 var $actionsPanel = jQuery("#actions_panel").hide();
 var $actionButton = jQuery("#action_button");
 var $loginToVkPanel = jQuery("#login_to_vk_panel").hide();
-var $hideAlreadyDownloaded = jQuery("#hide_alreay_downloaded");
 var $songListPanel = jQuery("#song_list_panel").hide();
 var $songList = jQuery("#song_list").find("tbody");
 var g_numActiveDownloads = 0;
@@ -36,24 +35,6 @@ var g_isSearchActive = false;
 var g_downloadSongIntervalMs = 1000;
 var g_downloadList = [];
 var g_urlToSong = {};
-var g_alreadyDownloadedList = {};
-
-chrome.storage.local.get('options', function(items) {
-    if(Object.keys(items).length > 0) {
-        Options = items.options;
-    }
-    var alreadyDownloadedList = Options.alreadyDownloadedList;
-    if (alreadyDownloadedList != "") {
-        var lines = alreadyDownloadedList.split("\n");
-        for (var i = 0; i < lines.length; i++) {
-            var line = lines[i];
-            if (line == "") {
-                continue;
-            }
-            g_alreadyDownloadedList[line] = true;
-        }
-    }
-});
 
 checkVkLoginAndLookForSongs();
 
@@ -65,10 +46,6 @@ $checkAllCheckbox.click(function(){
      var $checkbox = jQuery(this);
      $checkbox.prop('checked', $checkAllCheckbox.prop("checked"));
   });
-});
-
-$hideAlreadyDownloaded.click(function(){
-    lookForSongs();
 });
 
 // And close button
@@ -207,16 +184,11 @@ function lookForSongs() {
          return;
       }
       var num = 0;
-      var isHideAlreadyDownloaded = $hideAlreadyDownloaded.is(":checked");
       response["songs"].forEach(function(song) {
-         var songStr = JSON.stringify(song);
-         if (isHideAlreadyDownloaded && songStr in g_alreadyDownloadedList) {
-            return;
-         }
          num++;
          var $url = jQuery("<td>");
          var $checkbox = jQuery("<input type='checkbox'/>");
-         $checkbox.prop("data-song", songStr);
+         $checkbox.prop("data-song", JSON.stringify(song));
          $checkbox.prop("checked", "checked");
          $songList.append(
             jQuery("<tr>").append(
